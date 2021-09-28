@@ -37,14 +37,31 @@ public class Mesh {
         return indicesLength;
     }
 
-    public void appendVertices(float[] verts, int dataAmount, float x, float y, float z) {
+    public void appendVertices(float[] verts, float[] texCoords, int dataAmount, float x, float y, float z) {
         for (int line = 0; line < 4; line++) {
-            vertices.add(verts[line * 6] + x);
+
+            float tileOffset = 16f / 256f;
+            float s0 = (texCoords[0] * 16f) / 256f;
+            float s1 = s0 + tileOffset;
+            float t1 = (texCoords[1] * 16f) / 256f;
+            float t0 = t1 + tileOffset;
+
+            float s = s0, t = t0;
+
+            if ((verts[3 + (line * dataAmount)]) == 1) {
+                s = s1;
+            }
+
+            if ((verts[4 + (line * dataAmount)]) == 1) {
+                t = t1;
+            }
+
+            vertices.add(verts[line * dataAmount] + x);
             vertices.add(verts[1 + (line * dataAmount)] + y);
             vertices.add(verts[2 + (line * dataAmount)] + z);
-            vertices.add(verts[3 + (line * dataAmount)]);
-            vertices.add(verts[4 + (line * dataAmount)]);
-            vertices.add(verts[5 + (line * dataAmount)]);
+            vertices.add(s); // Texture S
+            vertices.add(t); // Texture T
+            vertices.add(verts[5 + (line * dataAmount)]); // Light Value
         }
     }
 

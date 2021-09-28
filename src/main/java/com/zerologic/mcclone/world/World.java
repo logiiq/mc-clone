@@ -15,10 +15,6 @@ public class World {
 
     private static final Vector<Chunk> chunks = new Vector<>();
 
-    private static int VAO;
-    private static int VBO;
-    private static int EBO;
-
     // maxChunks defines the amount of chunks to be rendered, will be n*n units large
     private static int maxChunks = 6; // Can be any number however odd numbers will be casted to even
     private static int halfChunks = maxChunks / 2;
@@ -27,9 +23,6 @@ public class World {
     public static void init(int numChunks) {
         maxChunks = numChunks;
         halfChunks = maxChunks/2;
-
-        chunks.add(new Chunk(chunkWidth, chunkHeight, chunkLength, 0, 0));
-        chunks.lastElement().init();
     }
 
     /* -- Infinite world generation --

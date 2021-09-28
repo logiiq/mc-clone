@@ -22,7 +22,7 @@ public class Game {
     private static Shader textShader = new Shader("src/main/resources/shaders/text/vertex.glsl", "src/main/resources/shaders/text/fragment.glsl", false);
 
     //-90deg yaw faces negative z direction!
-    private static Camera mainCamera = new Camera(-2.0f,  34.0f, 0.0f, 0.0f, 90.0f);
+    private static Camera mainCamera = new Camera(-2.0f,  128.0f, 0.0f, 0.0f, 90.0f);
     private static UIText fpsCounter = new UIText("FPS: 00", 50.0f, 0.0f, 0.0f);
 
     private static UIText playerPos = new UIText("X:00 Y:00 Z:00", 50f);
@@ -46,14 +46,14 @@ public class Game {
         playerPos.init();
         chunkSize.init();
 
-        World.init(2); // Initialize world
+        World.init(10); // Initialize world
 
         // GL stuff
         glEnable(GL_CULL_FACE); // Enable face culling
         glEnable(GL_BLEND);
         glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        initCallbacks();
+        initCallbacks(); // Initialize callbacks
 
         autoposition(); // Set positions of all UI elements
     }
@@ -96,7 +96,7 @@ public class Game {
             //World.draw();
 
             if (generate)
-                //World.update();
+                World.update();
 
             // Draw UI after everything else so we dont have strange rendering issues
             Renderer.draw(fpsCounter);

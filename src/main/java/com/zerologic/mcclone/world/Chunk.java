@@ -2,17 +2,16 @@ package com.zerologic.mcclone.world;
 
 import com.zerologic.mcclone.engine.Texture;
 import com.zerologic.mcclone.objects.Mesh;
-import org.joml.SimplexNoise;
+import com.zerologic.mcclone.world.block.*;
 
 import static org.lwjgl.opengl.GL40.*;
 
 public class Chunk {
-
     int VAO;
     int VBO;
     int EBO;
 
-    static float frontLightFactor = 0.8f;
+    public static float frontLightFactor = 0.8f;
     static float backLightFactor = 0.6f;
     static float leftLightFactor = 0.55f;
     static float rightLightFactor = 0.7f;
@@ -31,10 +30,10 @@ public class Chunk {
 
     static float[] frontFace = {
             // Front face
-            -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, frontLightFactor, // Bottom front left
-             0.5f, -0.5f, 0.5f,  1.0f, 0.0f, frontLightFactor, // Bottom front right
-             0.5f,  0.5f, 0.5f,  1.0f, 1.0f, frontLightFactor, // Top front right
-            -0.5f,  0.5f, 0.5f,  0.0f, 1.0f, frontLightFactor // Top front left
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, frontLightFactor, // Bottom front left
+             0.5f, -0.5f, 0.5f, 1.0f, 0.0f, frontLightFactor, // Bottom front right
+             0.5f,  0.5f, 0.5f, 1.0f, 1.0f, frontLightFactor, // Top front right
+            -0.5f,  0.5f, 0.5f, 0.0f, 1.0f, frontLightFactor// Top front left
     };
 
     static float[] backFace = {
@@ -79,14 +78,19 @@ public class Chunk {
 
     private Mesh chunkMesh = new Mesh();
 
-    private int width;
-    private int length;
-    private int height;
+    private final int width;
+    private final int length;
+    private final int height;
 
     private int[][][] blocks;
-    Texture woodTex;
-    Texture stoneTex;
+    Texture atlas;
 
+    private static final int GRASS = 1;
+    private static final int DIRT = 2;
+    private static final int WOOD = 3;
+    private static final int STONE = 4;
+
+    // Chunk actual position
     private float x;
     private float z;
 
@@ -100,31 +104,42 @@ public class Chunk {
         this.blocks = new int[width][height][length];
     }
 
-    OpenSimplex2F simplexNoise = new OpenSimplex2F(413763287631L);
+    OpenSimplex2F simplexNoise = new OpenSimplex2F(-11L);
+
+    float frequency = 0.06f;
     public void init() {
 
-        stoneTex = new Texture("src/main/resources/textures/stone.png", true, GL_RGBA);
+        atlas = new Texture("src/main/resources/textures/atlas.png", false, GL_RGBA);
 
         float maxPercentage = width * length * height;
         float currentProgress = 0f;
 
         //System.out.println("Generating world");\
 
-        float frequency = 0.007f;
         float[][] map = generateHeightmap(frequency);
 
         for (int y = 0; y < height; y++) {
             for (int z = 0; z < length; z++) {
                 for (int x = 0; x < width; x++) {
-                    float yVal = (map[x][z] + 12) * 10;
+                    float normalized = map[x][z] * (1f - 0f) / 2f + (1f + 0f) / 2f; // 0 to 1
 
-                    float height = map[x][z] * this.height;
+                    float yVal = (normalized) * height;
+
+                    if(yVal >= height)
+                        yVal = height - 1f;
+
+                    if(yVal < 0f)
+                        yVal = 0f;
 
                     if (y < yVal) {
-                        blocks[x][y][z] = 1;
+                        blocks[x][y][z] = DIRT;
                     }
 
-                    blocks[x][(int)yVal][z] = 1;
+                    if (yVal > 140f) {
+                        blocks[x][(int) yVal][z] = STONE;
+                    } else {
+                        blocks[x][(int) yVal][z] = 1;
+                    }
                 }
             }
         }
@@ -163,32 +178,21 @@ public class Chunk {
 
         for (int y = 0; y < length; y++) {
             for (int x = 0; x < width; x++) {
-                map[x][y] = (float)simplexNoise.noise2((x + this.x * 16) * frequency, (y + this.z * 16) * frequency);
+                double nx = (x + this.x * 16) / width - 0.5;
+                double ny = (y + this.z * 16) / length - 0.5;
+
+                double e;
+
+                e = (float)simplexNoise.noise2_XBeforeY(nx * frequency, ny * frequency);
+                e += 0.2f * (float)simplexNoise.noise2_XBeforeY(nx * (frequency * 2f), ny * (frequency * 2f));
+                e += 0.3f * (float)simplexNoise.noise2_XBeforeY(nx * (frequency * 6f), ny * (frequency * 6f));
+                e = e / (1f + 0.2f + 0.3f);
+
+                map[x][y] = (float)Math.pow(e * 0.8, 3.00);
             }
         }
 
         return map;
-    }
-
-    private float sumOctave(int num_iterations, float x, float y, float z, float persistence, float scale, float low, float high) {
-        float maxAmp = 0;
-        float amp = 1;
-        float freq = scale;
-        float noise = 0;
-
-
-        for (int i = 0; i < num_iterations; i++) {
-            noise += SimplexNoise.noise(x * freq, y * freq, z * freq) * amp;
-            maxAmp += amp;
-            amp *= persistence;
-            freq *= 2;
-        }
-
-        noise /= maxAmp;
-
-        noise = noise * (high - low) / 2f + (high + low) / 2f;
-
-        return noise;
     }
 
     int deleteY = 0;
@@ -214,22 +218,32 @@ public class Chunk {
 
     public void updateChunkMesh() {
         // left, right, top, bottom, front, back
-
         boolean[] faces = {true, true, true, true, true, true};
 
-       // System.out.println("Updating mesh...");
-        float max = width * length * height;
-        float progress = 0;
-
+        int blockType = 0;
 
         int blockIndex = 0;
         for (int y = 0; y < height; y++) {
             for (int z = 0; z < length; z++) {
                 for (int x = 0; x < width; x++) {
-                    //System.out.println("Updating: " + progress / max * 100 + "%")"
+
+                    Block grass = new Grass();
+                    Block dirt = new Dirt();
+                    Block stone = new Stone();
+
+                    Block currentBlock = grass;
+                    blockType = blocks[x][y][z];
+
+                    if (blockType == GRASS) {
+                        currentBlock = grass;
+                    } else if (blockType == DIRT) {
+                        currentBlock = dirt;
+                    } else if (blockType == STONE) {
+                        currentBlock = stone;
+                    }
 
                     if(blocks[x][y][z] == 0) {
-                        faces = new boolean[]{false, false, false, false, false, false};
+                        continue;
                     } else {
 
                         // Check left
@@ -299,50 +313,48 @@ public class Chunk {
                         }
 
                         if (faces[0]) {
-                            chunkMesh.appendVertices(leftFace, 6, x, y, z);
+                            chunkMesh.appendVertices(leftFace, currentBlock.leftFace(), 6, x, y, z);
                             chunkMesh.appendIndices(ccwIndex, blockIndex);
                             blockIndex++;
                         }
 
                         if (faces[1]) {
-                            chunkMesh.appendVertices(rightFace, 6, x, y, z);
+                            chunkMesh.appendVertices(rightFace, currentBlock.rightFace(), 6, x, y, z);
                             chunkMesh.appendIndices(cwIndex, blockIndex);
                             blockIndex++;
                         }
 
                         if (faces[2]) {
-                            chunkMesh.appendVertices(topFace, 6, x, y, z);
+                            chunkMesh.appendVertices(topFace, currentBlock.topFace(), 6, x, y, z);
                             chunkMesh.appendIndices(ccwIndex, blockIndex);
                             blockIndex++;
                         }
 
                         if (faces[3]) {
-                            chunkMesh.appendVertices(bottomFace, 6, x, y, z);
+                            chunkMesh.appendVertices(bottomFace, currentBlock.bottomFace(), 6, x, y, z);
                             chunkMesh.appendIndices(cwIndex, blockIndex);
                             blockIndex++;
                         }
 
                         if (faces[4]) {
-                            chunkMesh.appendVertices(frontFace, 6, x, y, z);
+                            chunkMesh.appendVertices(frontFace, currentBlock.frontFace(), 6, x, y, z);
                             chunkMesh.appendIndices(ccwIndex, blockIndex);
                             blockIndex++;
                         }
 
                         if (faces[5]) {
-                            chunkMesh.appendVertices(backFace, 6, x, y, z);
+                            chunkMesh.appendVertices(backFace, currentBlock.backFace(), 6, x, y, z);
                             chunkMesh.appendIndices(cwIndex, blockIndex);
                             blockIndex++;
                         }
                     }
-                    progress++;
                 }
             }
         }
-        //System.out.println("Updating: " + progress / max * 100 + "%");
     }
 
     public void draw() {
-        stoneTex.use();
+        atlas.use();
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, chunkMesh.indicesLength(), GL_UNSIGNED_INT, 0);
     }
