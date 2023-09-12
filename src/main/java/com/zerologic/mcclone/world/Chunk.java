@@ -4,7 +4,37 @@ import com.zerologic.mcclone.engine.Texture;
 import com.zerologic.mcclone.objects.Mesh;
 import com.zerologic.mcclone.world.block.*;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 import static org.lwjgl.opengl.GL40.*;
+
+class Point {
+    float x;
+    float z;
+
+    Point(float x, float z) {
+        this.x = x;
+        this.z = z;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, z);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof Point)) {
+            return false;
+        }
+        Point other = (Point) obj;
+        return x == other.x && z == other.z;
+    }
+}
 
 public class Chunk {
     int VAO;
@@ -31,48 +61,48 @@ public class Chunk {
     static float[] frontFace = {
             // Front face
             -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, frontLightFactor, // Bottom front left
-             0.5f, -0.5f, 0.5f, 1.0f, 0.0f, frontLightFactor, // Bottom front right
-             0.5f,  0.5f, 0.5f, 1.0f, 1.0f, frontLightFactor, // Top front right
-            -0.5f,  0.5f, 0.5f, 0.0f, 1.0f, frontLightFactor// Top front left
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f, frontLightFactor, // Bottom front right
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f, frontLightFactor, // Top front right
+            -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, frontLightFactor// Top front left
     };
 
     static float[] backFace = {
             // Back face
             -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, backLightFactor, // Bottom back left
-             0.5f, -0.5f, -0.5f, 1.0f, 0.0f, backLightFactor, // Bottom back right
-             0.5f,  0.5f, -0.5f, 1.0f, 1.0f, backLightFactor, // Top back right
-            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, backLightFactor  // Top back left
+            0.5f, -0.5f, -0.5f, 1.0f, 0.0f, backLightFactor, // Bottom back right
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f, backLightFactor, // Top back right
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, backLightFactor  // Top back left
     };
 
     static float[] leftFace = {
             // Left face
             -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, leftLightFactor, // Bottom back left
-            -0.5f, -0.5f,  0.5f, 1.0f, 0.0f, leftLightFactor, // Bottom front left
-            -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, leftLightFactor, // Top front left
-            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, leftLightFactor  // Top back left
+            -0.5f, -0.5f, 0.5f, 1.0f, 0.0f, leftLightFactor, // Bottom front left
+            -0.5f, 0.5f, 0.5f, 1.0f, 1.0f, leftLightFactor, // Top front left
+            -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, leftLightFactor  // Top back left
     };
 
     static float[] rightFace = {
             // Right face
             0.5f, -0.5f, -0.5f, 0.0f, 0.0f, rightLightFactor, // Bottom back left
-            0.5f, -0.5f,  0.5f, 1.0f, 0.0f, rightLightFactor, // Bottom front left
-            0.5f,  0.5f,  0.5f, 1.0f, 1.0f, rightLightFactor, // Top front left
-            0.5f,  0.5f, -0.5f, 0.0f, 1.0f, rightLightFactor  // Top back left
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f, rightLightFactor, // Bottom front left
+            0.5f, 0.5f, 0.5f, 1.0f, 1.0f, rightLightFactor, // Top front left
+            0.5f, 0.5f, -0.5f, 0.0f, 1.0f, rightLightFactor  // Top back left
     };
 
     static float[] topFace = {
             // Top face
-            -0.5f, 0.5f,  0.5f, 0.0f, 0.0f, topLightFactor, // Top front left
-             0.5f, 0.5f,  0.5f, 1.0f, 0.0f, topLightFactor, // Top front right
-             0.5f, 0.5f, -0.5f, 1.0f, 1.0f, topLightFactor, // Top back right
+            -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, topLightFactor, // Top front left
+            0.5f, 0.5f, 0.5f, 1.0f, 0.0f, topLightFactor, // Top front right
+            0.5f, 0.5f, -0.5f, 1.0f, 1.0f, topLightFactor, // Top back right
             -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, topLightFactor  // Top back left
     };
 
     static float[] bottomFace = {
             // Bottom face
-            -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, bottomLightFactor, // Bottom front left
-             0.5f, -0.5f,  0.5f, 1.0f, 0.0f, bottomLightFactor, // Bottom front right
-             0.5f, -0.5f, -0.5f, 1.0f, 1.0f, bottomLightFactor, // Bottom back right
+            -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, bottomLightFactor, // Bottom front left
+            0.5f, -0.5f, 0.5f, 1.0f, 0.0f, bottomLightFactor, // Bottom front right
+            0.5f, -0.5f, -0.5f, 1.0f, 1.0f, bottomLightFactor, // Bottom back right
             -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, bottomLightFactor  // Bottom back left
     };
 
@@ -83,7 +113,8 @@ public class Chunk {
     private final int height;
 
     private int[][][] blocks;
-    Texture atlas;
+    final static Texture atlas = new Texture("src/main/resources/textures/atlas.png", false, GL_RGBA);
+    ;
 
     private static final int GRASS = 1;
     private static final int DIRT = 2;
@@ -104,47 +135,12 @@ public class Chunk {
         this.blocks = new int[width][height][length];
     }
 
-    OpenSimplex2F simplexNoise = new OpenSimplex2F(-11L);
+    final static OpenSimplex2F simplexNoise = new OpenSimplex2F(-11L);
 
     float frequency = 0.06f;
+
+
     public void init() {
-
-        atlas = new Texture("src/main/resources/textures/atlas.png", false, GL_RGBA);
-
-        float maxPercentage = width * length * height;
-        float currentProgress = 0f;
-
-        //System.out.println("Generating world");\
-
-        float[][] map = generateHeightmap(frequency);
-
-        for (int y = 0; y < height; y++) {
-            for (int z = 0; z < length; z++) {
-                for (int x = 0; x < width; x++) {
-                    float normalized = map[x][z] * (1f - 0f) / 2f + (1f + 0f) / 2f; // 0 to 1
-
-                    float yVal = (normalized) * height;
-
-                    if(yVal >= height)
-                        yVal = height - 1f;
-
-                    if(yVal < 0f)
-                        yVal = 0f;
-
-                    if (y < yVal) {
-                        blocks[x][y][z] = DIRT;
-                    }
-
-                    if (yVal > 140f) {
-                        blocks[x][(int) yVal][z] = STONE;
-                    } else {
-                        blocks[x][(int) yVal][z] = 1;
-                    }
-                }
-            }
-        }
-        //System.out.println("Loading: " + currentProgress / maxPercentage * 100 + "%");
-
         updateChunkMesh(); // Generate faces for all the blocks
 
         VAO = glGenVertexArrays();
@@ -152,11 +148,11 @@ public class Chunk {
 
         VBO = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, chunkMesh.get(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, chunkMesh.get(), GL_STATIC_DRAW);
 
         EBO = glGenBuffers();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunkMesh.getIndices(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, chunkMesh.getIndices(), GL_STATIC_DRAW);
 
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 24, 0);
         glEnableVertexAttribArray(0);
@@ -183,12 +179,13 @@ public class Chunk {
 
                 double e;
 
-                e = (float)simplexNoise.noise2_XBeforeY(nx * frequency, ny * frequency);
-                e += 0.2f * (float)simplexNoise.noise2_XBeforeY(nx * (frequency * 2f), ny * (frequency * 2f));
-                e += 0.3f * (float)simplexNoise.noise2_XBeforeY(nx * (frequency * 6f), ny * (frequency * 6f));
+                e = simplexNoise.noise2_XBeforeY(nx * frequency, ny * frequency);
+                e += 0.2f * simplexNoise.noise2_XBeforeY(nx * (frequency * 2f), ny * (frequency * 2f));
+                e += 0.3f * simplexNoise.noise2_XBeforeY(nx * (frequency * 6f), ny * (frequency * 6f));
                 e = e / (1f + 0.2f + 0.3f);
-
-                map[x][y] = (float)Math.pow(e * 0.8, 3.00);
+                e = Math.pow(e * 0.8, 3.00);
+                e = (e * 0.5f) + 0.5f;
+                map[x][y] = (float) e;
             }
         }
 
@@ -217,141 +214,159 @@ public class Chunk {
     }
 
     public void updateChunkMesh() {
-        // left, right, top, bottom, front, back
-        boolean[] faces = {true, true, true, true, true, true};
 
-        int blockType = 0;
+        float[][] map = generateHeightmap(frequency);
 
-        int blockIndex = 0;
         for (int y = 0; y < height; y++) {
             for (int z = 0; z < length; z++) {
                 for (int x = 0; x < width; x++) {
+                    float yVal = map[x][z] * height;
 
-                    Block grass = new Grass();
-                    Block dirt = new Dirt();
-                    Block stone = new Stone();
+                    /*
+                    if(yVal >= height)
+                        yVal = height - 1f;
 
-                    Block currentBlock = grass;
-                    blockType = blocks[x][y][z];
+                    if(yVal < 0f)
+                        yVal = 0f;
 
-                    if (blockType == GRASS) {
-                        currentBlock = grass;
-                    } else if (blockType == DIRT) {
-                        currentBlock = dirt;
-                    } else if (blockType == STONE) {
-                        currentBlock = stone;
+                    if (y < yVal) {
+                        blocks[x][y][z] = DIRT;
+                    }
+                     */
+                    if (y < yVal) {
+                        blocks[x][y][z] = DIRT;
                     }
 
-                    if(blocks[x][y][z] == 0) {
-                        continue;
-                    } else {
+                    blocks[x][(int) yVal][z] = GRASS;
+                }
+            }
+        }
 
-                        // Check left
-                        try {
-                            if (blocks[x - 1][y][z] != 0) {
-                                faces[0] = false;
-                            } else if (blocks[x - 1][y][z] == 0) {
-                                faces[0] = true;
-                            }
-                        } catch (Exception e) {
-                            faces[0] = true;
-                        }
+        // left, right, top, bottom, front, back
+        boolean[] faces = {false, false, false, false, false, false};
 
-                        // Check right
-                        try {
-                            if (blocks[x + 1][y][z] != 0) {
-                                faces[1] = false;
-                            } else if (blocks[x + 1][y][z] == 0) {
-                                faces[1] = true;
-                            }
-                        } catch (Exception e) {
-                            faces[1] = true;
-                        }
+        Block grass = new Grass();
+        Block dirt = new Dirt();
+        Block stone = new Stone();
 
-                        // Check top
-                        try {
-                            if (blocks[x][y + 1][z] != 0) {
-                                faces[2] = false;
-                            } else if (blocks[x][y + 1][z] == 0) {
-                                faces[2] = true;
-                            }
-                        } catch (Exception e) {
-                            faces[2] = true;
-                        }
+        Block currentBlock = null;
 
-                        // Check bottom
-                        try {
-                            if (blocks[x][y - 1][z] != 0) {
-                                faces[3] = false;
-                            } else if (blocks[x][y - 1][z] == 0) {
-                                faces[3] = true;
-                            }
-                        } catch (Exception e) {
-                            faces[3] = true;
-                        }
+        int blockIndex = 0;
 
-                        // Check front
-                        try {
-                            if (blocks[x][y][z + 1] != 0) {
-                                faces[4] = false;
-                            } else if (blocks[x][y][z + 1] == 0) {
-                                faces[4] = true;
-                            }
-                        } catch (Exception e) {
-                            faces[4] = true;
-                        }
+        int maxWidth = width - 1;
+        int maxHeight = height - 1;
 
-                        // Check back
-                        try {
-                            if (blocks[x][y][z - 1] != 0) {
-                                faces[5] = false;
-                            } else if (blocks[x][y][z - 1] == 0) {
-                                faces[5] = true;
-                            }
-                        } catch (Exception e) {
-                            faces[5] = true;
-                        }
+        // build chunk mesh
+        for (int y = 0; y < height; y++) {
+            for (int z = 0; z < length; z++) {
+                for (int x = 0; x < width; x++) {
+                    int blockType = blocks[x][y][z];
+                    if (blockType == 0) {
+                        continue; // skip empty blocks
+                    }
 
-                        if (faces[0]) {
-                            chunkMesh.appendVertices(leftFace, currentBlock.leftFace(), 6, x, y, z);
-                            chunkMesh.appendIndices(ccwIndex, blockIndex);
-                            blockIndex++;
-                        }
+                    Arrays.fill(faces, false);
 
-                        if (faces[1]) {
-                            chunkMesh.appendVertices(rightFace, currentBlock.rightFace(), 6, x, y, z);
-                            chunkMesh.appendIndices(cwIndex, blockIndex);
-                            blockIndex++;
-                        }
+                    switch (blockType) {
+                        case GRASS:
+                            currentBlock = grass;
+                            break;
+                        case DIRT:
+                            currentBlock = dirt;
+                            break;
+                        case STONE:
+                            currentBlock = stone;
+                            break;
+                        default:
+                            // handle unknown block types
+                            break;
+                    }
 
-                        if (faces[2]) {
-                            chunkMesh.appendVertices(topFace, currentBlock.topFace(), 6, x, y, z);
-                            chunkMesh.appendIndices(ccwIndex, blockIndex);
-                            blockIndex++;
-                        }
+                    // Check top and bottom caps
+                    if (y == maxHeight) {
+                        faces[2] = true;
+                    } else if (y == 0) {
+                        faces[3] = true;
+                    }
 
-                        if (faces[3]) {
-                            chunkMesh.appendVertices(bottomFace, currentBlock.bottomFace(), 6, x, y, z);
-                            chunkMesh.appendIndices(cwIndex, blockIndex);
-                            blockIndex++;
-                        }
+                    // left
+                    if (x > 0 && blocks[x - 1][y][z] == 0) {
+                        faces[0] = true;
+                    } else if (x == 0) {
+                        faces[0] = true;
+                    }
 
-                        if (faces[4]) {
-                            chunkMesh.appendVertices(frontFace, currentBlock.frontFace(), 6, x, y, z);
-                            chunkMesh.appendIndices(ccwIndex, blockIndex);
-                            blockIndex++;
-                        }
+                    // right
+                    if (x < maxWidth && blocks[x + 1][y][z] == 0) {
+                        faces[1] = true;
+                    } else if (x == maxWidth) {
+                        faces[1] = true;
+                    }
 
-                        if (faces[5]) {
-                            chunkMesh.appendVertices(backFace, currentBlock.backFace(), 6, x, y, z);
-                            chunkMesh.appendIndices(cwIndex, blockIndex);
-                            blockIndex++;
-                        }
+                    // top
+                    if (y != maxHeight && blocks[x][y + 1][z] == 0) {
+                        faces[2] = true;
+                    }
+
+                    // bottom
+                    if (y > 0 && blocks[x][y - 1][z] == 0) {
+                        faces[3] = true;
+                    }
+
+                    // front
+                    if (z < 15 && blocks[x][y][z + 1] == 0) {
+                        faces[4] = true;
+                    } else if (z == 15) {
+                        faces[4] = true;
+                    }
+
+                    // back
+                    if (z > 0 && blocks[x][y][z - 1] == 0) {
+                        faces[5] = true;
+                    } else if (z == 0) {
+                        faces[5] = true;
+                    }
+
+                    if (faces[0]) {
+                        chunkMesh.appendVertices(leftFace, currentBlock.leftFace(), 6, x, y, z);
+                        chunkMesh.appendIndices(ccwIndex, blockIndex);
+                        blockIndex++;
+                    }
+
+                    if (faces[1]) {
+                        chunkMesh.appendVertices(rightFace, currentBlock.rightFace(), 6, x, y, z);
+                        chunkMesh.appendIndices(cwIndex, blockIndex);
+                        blockIndex++;
+                    }
+
+                    if (faces[2]) {
+                        chunkMesh.appendVertices(topFace, currentBlock.topFace(), 6, x, y, z);
+                        chunkMesh.appendIndices(ccwIndex, blockIndex);
+                        blockIndex++;
+                    }
+
+                    if (faces[3]) {
+                        chunkMesh.appendVertices(bottomFace, currentBlock.bottomFace(), 6, x, y, z);
+                        chunkMesh.appendIndices(cwIndex, blockIndex);
+                        blockIndex++;
+                    }
+
+                    if (faces[4]) {
+                        chunkMesh.appendVertices(frontFace, currentBlock.frontFace(), 6, x, y, z);
+                        chunkMesh.appendIndices(ccwIndex, blockIndex);
+                        blockIndex++;
+                    }
+
+                    if (faces[5]) {
+                        chunkMesh.appendVertices(backFace, currentBlock.backFace(), 6, x, y, z);
+                        chunkMesh.appendIndices(cwIndex, blockIndex);
+                        blockIndex++;
                     }
                 }
             }
         }
     }
+
 
     public void draw() {
         atlas.use();

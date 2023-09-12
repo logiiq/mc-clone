@@ -26,7 +26,7 @@ public class Game {
     private static UIText fpsCounter = new UIText("FPS: 00", 50.0f, 0.0f, 0.0f);
 
     private static UIText playerPos = new UIText("X:00 Y:00 Z:00", 50f);
-    private static UIText chunkSize = new UIText("XX chunks", 50f);
+    private static UIText chunkSize = new UIText("000 chunks", 50f);
 
     private static boolean generate = true;
 

@@ -1,23 +1,25 @@
 package com.zerologic.mcclone.objects;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Mesh {
-    Vector<Float> vertices;
-    Vector<Integer> indices;
+    ArrayList<Float> vertices;
+    ArrayList<Integer> indices;
 
     private int indicesLength = 0;
 
     public Mesh() {
-        vertices = new Vector<>();
-        indices = new Vector<>();
+        vertices = new ArrayList<>();
+        indices = new ArrayList<>();
     }
 
     public float[] get() {
         float[] data = new float[vertices.size()];
+        Iterator<Float> iterator = vertices.iterator();
 
         for (int i = 0; i < data.length; i++) {
-            data[i] = vertices.elementAt(i);
+            data[i] = iterator.next();
         }
 
         return data;
@@ -25,9 +27,10 @@ public class Mesh {
 
     public int[] getIndices() {
         int[] arrIndices = new int[indices.size()];
+        Iterator<Integer> iterator = indices.iterator();
 
         for (int i = 0; i < arrIndices.length; i++) {
-            arrIndices[i] = indices.elementAt(i);
+            arrIndices[i] = iterator.next();
         }
 
         return arrIndices;
@@ -40,10 +43,10 @@ public class Mesh {
     public void appendVertices(float[] verts, float[] texCoords, int dataAmount, float x, float y, float z) {
         for (int line = 0; line < 4; line++) {
 
-            float tileOffset = 16f / 256f;
-            float s0 = (texCoords[0] * 16f) / 256f;
+            float tileOffset = 16f * 0.00390625f;
+            float s0 = (texCoords[0] * 16f) * 0.00390625f;
             float s1 = s0 + tileOffset;
-            float t1 = (texCoords[1] * 16f) / 256f;
+            float t1 = (texCoords[1] * 16f) * 0.00390625f;
             float t0 = t1 + tileOffset;
 
             float s = s0, t = t0;
@@ -67,17 +70,17 @@ public class Mesh {
 
     // block index will tell the program which block it is drawing which will then multiply it by 4,
     public void appendIndices(int[] index, int blockIndex) {
-        for (int i : index) {
-            indices.add(i + (blockIndex * 4));
+        for (int i = 0; i < index.length; i++) {
+            indices.add(index[i] + (blockIndex * 4));
             indicesLength++;
         }
     }
 
     public void deleteVertices() {
-        this.vertices.removeAllElements();
+        this.vertices.clear();
     }
 
     public void deleteIndices() {
-        this.indices.removeAllElements();
+        this.indices.clear();
     }
 }

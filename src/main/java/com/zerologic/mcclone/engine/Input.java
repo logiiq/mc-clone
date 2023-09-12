@@ -57,9 +57,6 @@ public class Input {
                 Game.setGenerate(!Game.generate());
             }
 
-            if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-                World.chunks().lastElement().removeBlock(0, 0);
-            }
         });
 
         glfwSetCursorPosCallback(window, (window, xpos, ypos) -> {
